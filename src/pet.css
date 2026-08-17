@@ -160,13 +160,16 @@ html, body {
   50% { filter: brightness(1.6); transform: scale(1.15); }
 }
 .board-wrap { position: relative; width: 100%; }
-.cell.bead { transition: border-radius 0.6s, filter 0.6s; }
-.cell.bead::after { transition: opacity 0.4s; }
 
-/* ---------- 熨烫：豆子融合 ---------- */
+/* ---------- 熨烫：豆子融化（熨斗扫过一行融一行） ---------- */
 .board.ironing { gap: 0; }
-.board.ironing .cell.bead { border-radius: 1px; filter: brightness(1.05) saturate(1.12); }
-.board.ironing .cell.bead::after { opacity: 0; }
+.cell.bead.melted { animation: meltIn 0.3s ease-out forwards; }
+.cell.bead.melted::after { opacity: 0; transform: scale(0); }
+@keyframes meltIn {
+  0% { transform: scale(1); border-radius: 3px; }
+  55% { transform: scale(1.06); border-radius: 0; }
+  100% { transform: scale(1.02); border-radius: 0; filter: brightness(1.1) saturate(1.16); }
+}
 
 .iron-paper {
   position: absolute;
@@ -178,17 +181,11 @@ html, body {
 }
 .iron {
   position: absolute;
-  top: -24px;
-  left: 0;
+  width: 90px;
+  height: 68px;
   pointer-events: none;
-  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.25));
-  animation: ironSlide 1.6s ease-in-out infinite;
-}
-@keyframes ironSlide {
-  0% { left: 0%; transform: translateX(0); }
-  45% { left: 100%; transform: translateX(-100%); }
-  55% { left: 100%; transform: translateX(-100%); }
-  100% { left: 0%; transform: translateX(0); }
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.28)) drop-shadow(0 0 12px rgba(255, 138, 61, 0.55));
+  will-change: top, left, transform, opacity;
 }
 .iron-paper.tear { animation: tearOff 0.45s ease-in forwards; }
 @keyframes tearOff {
@@ -211,18 +208,13 @@ html, body {
   display: grid;
   grid-template-columns: repeat(var(--cols, 16), 1fr);
   grid-template-rows: repeat(var(--rows, 15), 1fr);
-  gap: 1px;
+  gap: 0;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.18));
 }
+/* 成品：豆子已焊合成连续色块，无圆角、无豆孔 */
 .duck .bead {
   background: var(--color);
-  border-radius: 3px;
+  border-radius: 0;
   position: relative;
 }
-.duck .bead::after {
-  content: '';
-  position: absolute;
-  inset: 30%;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.8);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
-}
+.duck .bead::after { display: none; }

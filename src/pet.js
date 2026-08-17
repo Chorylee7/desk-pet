@@ -6,7 +6,7 @@ const fx = document.getElementById('fx');
 const BOARD_W = 252;
 const BOARD_H = 288;
 
-const IRON_SVG = '<svg viewBox="0 0 64 40" width="56" height="35"><path d="M6 24 L58 24 L50 36 L14 36 Z" fill="#e5484d"/><path d="M18 24 C18 10 46 10 46 24 Z" fill="#c0272d"/><rect x="25" y="6" width="14" height="7" rx="3.5" fill="#6b7280"/><circle cx="32" cy="30" r="2" fill="#ffd166"/></svg>';
+const IRON_SVG = '<svg viewBox="0 0 120 90" width="90" height="68"><defs><linearGradient id="ig" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff6b6b"/><stop offset="1" stop-color="#d93025"/></linearGradient></defs><path d="M30 38 C32 12 70 12 74 38 Z" fill="#5b6470"/><rect x="38" y="10" width="28" height="9" rx="4.5" fill="#39424e"/><path d="M6 46 L112 46 L96 74 L20 74 Z" fill="url(#ig)"/><path d="M20 74 L96 74 L92 82 L22 82 Z" fill="#8f9aa6"/><g fill="#3a2e2a"><circle cx="48" cy="52" r="3.5"/><circle cx="68" cy="52" r="3.5"/></g><path d="M50 62 Q58 67 66 62" fill="none" stroke="#3a2e2a" stroke-width="2.5" stroke-linecap="round"/><g stroke="#ffd8d8" stroke-width="3" stroke-linecap="round" opacity="0.9"><line x1="96" y1="26" x2="96" y2="16"/><line x1="104" y1="30" x2="104" y2="20"/><line x1="112" y1="26" x2="112" y2="16"/></g></svg>';
 
 // phase: 'assemble' 拼装 | 'ironing' 熨烫中 | 'tear' 待撕纸 | 'tearing' 撕纸动画中 | 'live' 已诞生
 let phase = 'live';
@@ -17,8 +17,12 @@ let dragState = null;
 let wanderTimer = null;
 let wanderTick = null;
 let phaseTimer = null;
+let ironRaf = null;
 let bead = null;        // 拼豆图案缓存 { grid, palette, order, total }
 let hintShown = false;
+
+let audioCtx = null;
+let ironNoise = null;
 
 const PHRASES = [
   '喵～ 陪我玩会儿嘛', '今天也要开开心心哦', '嘿嘿，被你发现啦',
@@ -70,6 +74,8 @@ async function getBeadPattern() {
 // ---------- 渲染 ----------
 async function render() {
   clearTimeout(phaseTimer);
+  if (ironRaf) { cancelAnimationFrame(ironRaf); ironRaf = null; }
+  stopIronSound();
   stage.querySelectorAll('.pet, .board, .assemble, .board-wrap, .hint').forEach(el => el.remove());
 
   if (settings.pet === 'bead') {
@@ -188,7 +194,66 @@ function dropBeads() {
   if (newProgress >= bead.total) startIroning();
 }
 
-// ---------- 熨烫 ----------
+// ---------- 音效（Web Audio，无需音频文件） ----------
+function ensureAudio() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { /* ignore */ }
+  }
+  return audioCtx;
+}
+function startIronSound() {
+  const ctx = ensureAudio();
+  if (!ctx || ironNoise) return;
+  try {
+    const len = ctx.sampleRate * 2;
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.loop = true;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass'; filter.frequency.value = 3800; filter.Q.value = 0.5;
+    const gain = ctx.createGain(); gain.gain.value = 0.045;
+    src.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+    src.start();
+    ironNoise = { src, gain };
+  } catch (e) { /* ignore */ }
+}
+function stopIronSound() {
+  if (!ironNoise || !audioCtx) return;
+  try {
+    ironNoise.gain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.06);
+    const s = ironNoise.src;
+    setTimeout(() => { try { s.stop(); } catch (e) { /* ignore */ } }, 250);
+  } catch (e) { /* ignore */ }
+  ironNoise = null;
+}
+function playTearSound() {
+  const ctx = ensureAudio();
+  if (!ctx) return;
+  try {
+    const len = Math.floor(ctx.sampleRate * 0.35);
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass'; filter.frequency.value = 2600; filter.Q.value = 0.7;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.12, ctx.currentTime + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.32);
+    src.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+    src.start();
+  } catch (e) { /* ignore */ }
+}
+
+// ---------- 熨烫：拿熨斗摁上去，下压 → 左右蹭 → 抬起 ----------
+function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+function lerp(a, b, t) { return a + (b - a) * t; }
+
 function startIroning() {
   phase = 'ironing';
   const board = stage.querySelector('.board');
@@ -204,18 +269,73 @@ function startIroning() {
     boardWrap.appendChild(paper);
     boardWrap.appendChild(iron);
   }
-  if (hint) hint.textContent = '熨烫中…把豆子焊在一起 🔥';
-  api.showBubble('熨一熨，把豆子焊在一起 🔥');
-  phaseTimer = setTimeout(() => {
-    phase = 'tear';
-    if (hint) hint.textContent = '点我撕下熨烫纸 👌';
-    api.showBubble('点我撕下熨烫纸 👌');
-  }, 3400);
+  if (hint) hint.textContent = '熨烫中…把豆子焊起来 🔥';
+  api.showBubble('拿熨斗摁一摁，把豆子焊起来 🔥');
+  startIronSound();
+
+  const boardW = board.clientWidth;
+  const boardH = board.clientHeight;
+  const ironW = 90, ironH = 68;
+  const centerX = (boardW - ironW) / 2;
+  const centerY = (boardH - ironH) / 2;
+
+  // 融化顺序：从图案中心向两侧扩散（配合熨斗左右蹭）
+  const grid = bead.grid;
+  const centerCol = (grid[0].length - 1) / 2;
+  const centerRow = (grid.length - 1) / 2;
+  const items = Array.from(board.querySelectorAll('.cell.bead'))
+    .map(el => {
+      const [gx, gy] = el.dataset.key.split(',').map(Number);
+      return { el, d: Math.abs(gx - centerCol) + Math.abs(gy - centerRow) * 0.3 };
+    })
+    .sort((a, b) => a.d - b.d);
+
+  const ironEl = boardWrap.querySelector('.iron');
+  const T1 = 0.45, T2 = 3.0, T3 = 3.4; // 秒
+  const t0 = performance.now();
+  let idx = 0;
+
+  const step = () => {
+    if (phase !== 'ironing') return; // 被中断
+    const t = (performance.now() - t0) / 1000;
+
+    if (t < T1) {
+      // 阶段一：从上方落下、摁到豆子上
+      const p = easeOutCubic(t / T1);
+      ironEl.style.top = lerp(-ironH - 30, centerY + 6, p) + 'px';
+      ironEl.style.left = centerX + 'px';
+      ironEl.style.transform = `scale(${1.2 - 0.2 * p})`;
+    } else if (t < T2) {
+      // 阶段二：左右来回蹭，豆子随之融化
+      const pt = (t - T1) / (T2 - T1);
+      const x = centerX + Math.sin(pt * Math.PI * 5) * boardW * 0.16;
+      ironEl.style.top = centerY + 'px';
+      ironEl.style.left = x + 'px';
+      ironEl.style.transform = 'scale(1)';
+      const target = Math.floor(pt * items.length);
+      while (idx < target && idx < items.length) { items[idx].el.classList.add('melted'); idx++; }
+    } else if (t < T3) {
+      // 阶段三：抬起、移走
+      const p = (t - T2) / (T3 - T2);
+      ironEl.style.top = lerp(centerY, -ironH - 30, p) + 'px';
+      ironEl.style.left = centerX + 'px';
+      ironEl.style.opacity = 1 - p;
+    } else {
+      stopIronSound();
+      phase = 'tear';
+      if (hint) hint.textContent = '点我撕下熨烫纸 👌';
+      api.showBubble('点我撕下熨烫纸 👌');
+      return;
+    }
+    ironRaf = requestAnimationFrame(step);
+  };
+  ironRaf = requestAnimationFrame(step);
 }
 
 function tearOff() {
   if (phase !== 'tear') return;
   phase = 'tearing';
+  playTearSound();
   const paper = stage.querySelector('.iron-paper');
   const iron = stage.querySelector('.iron');
   const hint = stage.querySelector('.hint');

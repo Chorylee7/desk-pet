@@ -76,8 +76,12 @@ function createPetWindow() {
   if (settings.position) {
     petWin.setPosition(settings.position[0], settings.position[1]);
   } else {
+    // 默认出现在主屏中央
     const { workArea } = screen.getPrimaryDisplay();
-    petWin.setPosition(workArea.x + workArea.width - size - 60, workArea.y + workArea.height - size - 60);
+    petWin.setPosition(
+      Math.round(workArea.x + (workArea.width - size) / 2),
+      Math.round(workArea.y + (workArea.height - size) / 2)
+    );
   }
 
   petWin.on('move', throttle(() => {

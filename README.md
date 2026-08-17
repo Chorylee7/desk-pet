@@ -48,4 +48,4 @@ scripts/           # 托盘图标生成、拼豆预览渲染
 
 ## License
 
-MIT
+[Apache License 2.0](LICENSE)
