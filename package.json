@@ -1,15 +1,43 @@
 {
   "name": "desk-pet",
   "version": "0.1.0",
-  "description": "跨平台桌面宠物：可悬浮置顶、拖动、点击互动、多形象切换、自定义导入、随机走动",
+  "description": "跨平台桌面宠物（Electron）：悬浮置顶、拖拽、点击互动、多形象切换、自定义导入、随机走动、拼豆熨烫鸭 🦆",
   "main": "main.js",
+  "author": "Chorylee7",
   "scripts": {
     "start": "electron .",
     "smoke": "electron . --smoke-test",
-    "gen-icon": "node scripts/gen-icon.js"
+    "gen-icon": "node scripts/gen-icon.js",
+    "dist": "electron-builder",
+    "dist:mac": "electron-builder --mac",
+    "dist:win": "electron-builder --win"
   },
   "license": "Apache-2.0",
+  "build": {
+    "appId": "com.chorylee.deskpet",
+    "productName": "DeskPet",
+    "files": [
+      "main.js",
+      "preload.js",
+      "config.js",
+      "src/**/*",
+      "pets/**/*",
+      "assets/**/*",
+      "preview/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.entertainment",
+      "target": ["dmg", "zip"]
+    },
+    "win": {
+      "target": ["nsis", "zip"]
+    },
+    "directories": {
+      "output": "dist"
+    }
+  },
   "devDependencies": {
-    "electron": "^33.0.0"
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
   }
 }
