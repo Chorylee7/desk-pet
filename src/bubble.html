@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="bubble.css">
+</head>
+<body>
+  <div id="bubble"></div>
+  <script>
+    const { ipcRenderer } = require('electron');
+    ipcRenderer.on('bubble-text', (_e, text) => {
+      document.getElementById('bubble').textContent = text;
+    });
+  </script>
+</body>
+</html>

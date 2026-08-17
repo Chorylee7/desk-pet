@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>桌面宠物 · 设置</title>
+  <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+  <header>
+    <h1>🐾 桌面宠物</h1>
+    <p class="sub">选一个喜欢的卡通形象，点它还有小惊喜</p>
+  </header>
+
+  <section>
+    <h2>选择形象</h2>
+    <div id="gallery" class="gallery"></div>
+    <button id="importBtn" class="import">＋ 导入自定义图片（PNG / GIF / JPG…）</button>
+    <p class="hint">也可以直接把图片文件拖到宠物身上</p>
+  </section>
+
+  <section>
+    <h2>宠物大小</h2>
+    <div class="row">
+      <input id="sizeRange" type="range" min="80" max="300" step="10">
+      <span id="sizeVal" class="sizeval">160 px</span>
+    </div>
+  </section>
+
+  <section class="switch-row">
+    <div>
+      <h2>随机走动</h2>
+      <p class="hint">让宠物在桌面边缘随机散步</p>
+    </div>
+    <label class="switch">
+      <input id="wanderToggle" type="checkbox">
+      <span class="slider"></span>
+    </label>
+  </section>
+
+  <footer>
+    <button id="closeBtn" class="primary">完成</button>
+  </footer>
+
+  <script src="settings.js"></script>
+</body>
+</html>

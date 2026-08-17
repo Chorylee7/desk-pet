@@ -1,0 +1,228 @@
+:root { --flip: 1; }
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+#stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#fx { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+
+.pet {
+  width: 86%;
+  height: 86%;
+  transform: scaleX(var(--flip, 1));
+  cursor: grab;
+  position: relative;
+}
+.pet.dragging { cursor: grabbing; }
+.pet svg, .pet img { width: 100%; height: 100%; display: block; }
+.pet img { object-fit: contain; pointer-events: none; }
+
+/* ---------- 内部部件动画 ---------- */
+.eye {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: blink 4.6s infinite;
+}
+.tail {
+  transform-box: view-box;
+  transform-origin: 150px 150px;
+  animation: tailwag 1.8s ease-in-out infinite;
+}
+.antenna {
+  transform-box: view-box;
+  transform-origin: 100px 60px;
+  animation: wiggle 2.6s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 90%, 100% { transform: scaleY(1); }
+  94% { transform: scaleY(0.08); }
+}
+@keyframes tailwag {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-16deg); }
+}
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-7deg); }
+}
+
+/* ---------- 宠物整体状态动画 ---------- */
+.pet.idle > * { animation: idleFloat 3.4s ease-in-out infinite; }
+.pet.walking > * { animation: hop 0.34s ease-in-out infinite; }
+.pet.jump > * { animation: jump 0.65s cubic-bezier(0.3, 1.5, 0.6, 1); }
+.pet.spin > * { animation: spin 0.85s ease-in-out; }
+.pet.happy > * { animation: happy 0.9s ease-in-out; }
+
+@keyframes idleFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+@keyframes hop {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(-4deg); }
+}
+@keyframes jump {
+  0% { transform: translateY(0) scale(1); }
+  30% { transform: translateY(-8px) scale(1.08, 0.92); }
+  55% { transform: translateY(0) scale(0.92, 1.08); }
+  100% { transform: translateY(0) scale(1); }
+}
+@keyframes spin {
+  0% { transform: rotate(0deg) scale(1); }
+  100% { transform: rotate(360deg) scale(0.85); }
+}
+@keyframes happy {
+  0%, 100% { transform: translateY(0); }
+  25% { transform: translateY(-8px) rotate(-8deg); }
+  50% { transform: translateY(-4px) rotate(8deg); }
+  75% { transform: translateY(-8px) rotate(-6deg); }
+}
+
+/* ---------- 点击特效粒子 ---------- */
+.fx-item {
+  position: absolute;
+  bottom: 18%;
+  pointer-events: none;
+  animation: rise 1.1s ease-out forwards;
+}
+@keyframes rise {
+  0% { transform: translateY(0) scale(0.6); opacity: 0; }
+  15% { opacity: 1; }
+  100% { transform: translateY(-70px) scale(1.2); opacity: 0; }
+}
+
+/* ---------- 拼豆 ---------- */
+.assemble {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+}
+.board {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 16), 1fr);
+  grid-template-rows: repeat(var(--rows, 15), 1fr);
+  width: 100%;
+  aspect-ratio: 16 / 15;
+  gap: 1px;
+}
+.cell { border-radius: 3px; position: relative; }
+.cell.peg { background: #eaf1f7; }
+.cell.peg::after {
+  content: '';
+  position: absolute;
+  inset: 36%;
+  border-radius: 50%;
+  background: #cbd9e4;
+}
+.cell.bead {
+  background: var(--color);
+  animation: beadPop 0.32s cubic-bezier(0.3, 1.6, 0.5, 1) backwards;
+}
+.cell.bead::after {
+  content: '';
+  position: absolute;
+  inset: 30%;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+@keyframes beadPop {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.board.complete .cell.bead {
+  animation: beadFlash 0.5s ease-in-out;
+}
+@keyframes beadFlash {
+  0%, 100% { filter: none; transform: scale(1); }
+  50% { filter: brightness(1.6); transform: scale(1.15); }
+}
+.board-wrap { position: relative; width: 100%; }
+.cell.bead { transition: border-radius 0.6s, filter 0.6s; }
+.cell.bead::after { transition: opacity 0.4s; }
+
+/* ---------- 熨烫：豆子融合 ---------- */
+.board.ironing { gap: 0; }
+.board.ironing .cell.bead { border-radius: 1px; filter: brightness(1.05) saturate(1.12); }
+.board.ironing .cell.bead::after { opacity: 0; }
+
+.iron-paper {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.72);
+  border-radius: 4px;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+.iron {
+  position: absolute;
+  top: -24px;
+  left: 0;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.25));
+  animation: ironSlide 1.6s ease-in-out infinite;
+}
+@keyframes ironSlide {
+  0% { left: 0%; transform: translateX(0); }
+  45% { left: 100%; transform: translateX(-100%); }
+  55% { left: 100%; transform: translateX(-100%); }
+  100% { left: 0%; transform: translateX(0); }
+}
+.iron-paper.tear { animation: tearOff 0.45s ease-in forwards; }
+@keyframes tearOff {
+  0% { transform: translateY(0) rotate(0); opacity: 1; }
+  100% { transform: translateY(-46px) rotate(-9deg); opacity: 0; }
+}
+
+.hint {
+  font: 12px/1.2 system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  color: #8899a6;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 999px;
+  padding: 4px 12px;
+  text-align: center;
+  white-space: nowrap;
+}
+.duck {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 16), 1fr);
+  grid-template-rows: repeat(var(--rows, 15), 1fr);
+  gap: 1px;
+}
+.duck .bead {
+  background: var(--color);
+  border-radius: 3px;
+  position: relative;
+}
+.duck .bead::after {
+  content: '';
+  position: absolute;
+  inset: 30%;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
+}

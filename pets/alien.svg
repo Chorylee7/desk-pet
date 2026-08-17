@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <g class="antenna">
+    <path d="M100 58 Q100 30 118 26" fill="none" stroke="#6FBF44" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="122" cy="24" r="11" fill="#9BE15D"/>
+  </g>
+  <ellipse class="body" cx="100" cy="124" rx="72" ry="64" fill="#9BE15D"/>
+  <g class="eye eye-l"><ellipse cx="76" cy="116" rx="16" ry="20" fill="#14320F"/><circle cx="82" cy="108" r="6" fill="#CFF3A8"/></g>
+  <g class="eye eye-r"><ellipse cx="124" cy="116" rx="16" ry="20" fill="#14320F"/><circle cx="130" cy="108" r="6" fill="#CFF3A8"/></g>
+  <path d="M92 150 Q100 156 108 150" fill="none" stroke="#14320F" stroke-width="5" stroke-linecap="round"/>
+  <ellipse cx="56" cy="148" rx="9" ry="6" fill="#6FBF44" opacity="0.6"/>
+  <ellipse cx="144" cy="148" rx="9" ry="6" fill="#6FBF44" opacity="0.6"/>
+</svg>

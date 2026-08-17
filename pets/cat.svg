@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <g class="tail">
+    <path d="M150 150 Q180 130 185 100 Q188 80 172 78" fill="none" stroke="#F08A2E" stroke-width="16" stroke-linecap="round"/>
+  </g>
+  <ellipse class="body" cx="100" cy="122" rx="72" ry="64" fill="#F7A34A"/>
+  <ellipse cx="100" cy="140" rx="40" ry="30" fill="#FDE3C0"/>
+  <g class="ear-l"><path d="M46 78 L54 26 L98 52 Z" fill="#F7A34A"/><path d="M56 66 L60 36 L90 52 Z" fill="#F5B6D0"/></g>
+  <g class="ear-r"><path d="M154 78 L146 26 L102 52 Z" fill="#F7A34A"/><path d="M144 66 L140 36 L110 52 Z" fill="#F5B6D0"/></g>
+  <g class="eye eye-l"><ellipse cx="74" cy="108" rx="12" ry="15" fill="#3A2E2A"/><circle cx="78" cy="103" r="4" fill="#ffffff"/></g>
+  <g class="eye eye-r"><ellipse cx="126" cy="108" rx="12" ry="15" fill="#3A2E2A"/><circle cx="130" cy="103" r="4" fill="#ffffff"/></g>
+  <path d="M94 124 L106 124 L100 132 Z" fill="#F26B8F"/>
+  <path d="M100 132 Q100 140 90 142 M100 132 Q100 140 110 142" fill="none" stroke="#3A2E2A" stroke-width="4" stroke-linecap="round"/>
+  <g stroke="#C97F3B" stroke-width="3" stroke-linecap="round">
+    <line x1="40" y1="118" x2="68" y2="122"/><line x1="42" y1="134" x2="70" y2="132"/>
+    <line x1="160" y1="118" x2="132" y2="122"/><line x1="158" y1="134" x2="130" y2="132"/>
+  </g>
+  <ellipse cx="56" cy="136" rx="10" ry="6" fill="#F8C7D8" opacity="0.7"/>
+  <ellipse cx="144" cy="136" rx="10" ry="6" fill="#F8C7D8" opacity="0.7"/>
+</svg>

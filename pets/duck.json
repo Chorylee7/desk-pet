@@ -1,0 +1,26 @@
+{
+  "name": "拼豆橡皮鸭",
+  "id": "bead",
+  "palette": {
+    "Y": "#FFD23F",
+    "O": "#FF8A3D",
+    "K": "#2E2A28"
+  },
+  "grid": [
+    "................",
+    ".....YYYYY......",
+    "....YYYYYYY.....",
+    "..OOYYKYYYYY....",
+    "...OYYYYYYYY....",
+    "....YYYYYYY.....",
+    ".....YYYY.......",
+    "....YYYYYYYY....",
+    "...YYYYYYYYYY...",
+    "..YYYYYYYYYYYY..",
+    "..YYYYYYYYYYYY..",
+    "..YYYYYYYYYYYY..",
+    "...YYYYYYYYYY...",
+    "....YYYYYYYY....",
+    "....OO....OO...."
+  ]
+}
